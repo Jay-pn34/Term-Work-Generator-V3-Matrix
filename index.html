@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Term Work Generator V3 Matrix</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: white;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 90%;
+      background: #1e1e1e;
+      padding: 20px;
+      margin: auto;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+      overflow-x: auto;
+    }
+    h2 { color: #fff; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #444;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+    td {
+      padding: 5px;
+    }
+    input {
+      width: 98%;
+      padding: 5px;
+      border: 1px solid #555;
+      border-radius: 3px;
+      box-sizing: border-box;
+      background-color: #333;
+      color: white;
+      transition: box-shadow 0.3s, border 0.3s;
+    }
+    input:focus {
+      outline: none;
+    }
+    .valid {
+      box-shadow: 0 0 10px #1F4A70;
+      border: 1px solid #1F4A70;
+    }
+    .invalid {
+      box-shadow: 0 0 10px #D1435B;
+      border: 1px solid #D1435B;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+      position: relative;
+    }
+    button:hover { background-color: #0056b3; }
+    .remove-btn { background-color: red; }
+    .remove-btn:hover { background-color: darkred; }
+    .copy-btn { background-color: orange; }
+    .copy-btn:hover { background-color: darkorange; }
+
+    /* Tooltip styling */
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+    .tooltip::after {
+      content: attr(data-tooltip);
+      visibility: hidden;
+      background-color: #000;
+      color: #fff;
+      text-align: center;
+      padding: 5px;
+      border-radius: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 150%;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 12px;
+    }
+    .tooltip:hover::after {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .warnings {
+      max-width: 90%;
+      margin: auto;
+      margin-top: 20px;
+      background-color: #3E3B2F;
+      padding: 10px;
+      border-radius: 5px;
+      border-left: 5px solid #F1C232;
+      font-size: 14px;
+      text-align: left;
+      color: #F4F4F4;
+    }
+  </style>
+  <script>
+    function addRow() {
+      var table = document.getElementById("dataTable");
+      var row = table.insertRow(-1);
+      for (var i = 0; i < 10; i++) {
+        var cell = row.insertCell(i);
+        var input = document.createElement("input");
+        input.type = "text";
+        input.addEventListener("input", validateFields);
+        cell.appendChild(input);
+      }
+      var actionCell = row.insertCell(10);
+      actionCell.innerHTML = `
+        <button type="button" class="copy-btn tooltip" data-tooltip="Copy previous row" onclick="copyRow(this)">📋</button>
+        <button type="button" class="remove-btn tooltip" data-tooltip="Remove this row" onclick="removeRow(this)">X</button>
+      `;
+    }
+
+    function removeRow(button) {
+      var row = button.parentNode.parentNode;
+      row.parentNode.removeChild(row);
+    }
+
+    function copyRow(button) {
+      var row = button.parentNode.parentNode;
+      var prevRow = row.previousElementSibling;
+      if (prevRow) {
+        var prevInputs = prevRow.getElementsByTagName("input");
+        var currInputs = row.getElementsByTagName("input");
+        for (var i = 0; i < prevInputs.length; i++) {
+          currInputs[i].value = prevInputs[i].value;
+          validateFields();
+        }
+      }
+    }
+
+    function validateFields() {
+      var inputs = document.querySelectorAll("input[type='text']");
+      inputs.forEach(input => {
+        if (input.value.trim() === "") {
+          input.classList.add("invalid");
+          input.classList.remove("valid");
+        } else {
+          input.classList.add("valid");
+          input.classList.remove("invalid");
+        }
+      });
+
+      var emailInput = document.getElementById("email");
+      var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (emailPattern.test(emailInput.value.trim())) {
+        emailInput.classList.add("valid");
+        emailInput.classList.remove("invalid");
+      } else {
+        emailInput.classList.add("invalid");
+        emailInput.classList.remove("valid");
+      }
+    }
+
+    function submitForm() {
+      var formData = { email: document.getElementById('email').value, entries: [] };
+      var table = document.getElementById("dataTable");
+      var allValid = true;
+
+      for (var i = 1; i < table.rows.length; i++) {
+        var row = table.rows[i].getElementsByTagName("input");
+        var entry = {
+          name: row[0].value,
+          pen: row[1].value,
+          subject: row[2].value,
+          term: row[3].value,
+          semester: row[4].value,
+          className: row[5].value,
+          batch: row[6].value,
+          checkedBy: row[7].value,
+          practicalNumber: row[8].value,
+          experimentName: row[9].value
+        };
+
+        Object.values(entry).forEach(value => {
+          if (value.trim() === "") {
+            allValid = false;
+          }
+        });
+
+        formData.entries.push(entry);
+      }
+
+      validateFields();
+      var emailInput = document.getElementById("email");
+      if (!emailInput.classList.contains("valid")) {
+        alert("⚠️ Please enter a valid email address.");
+        return;
+      }
+
+      if (!allValid) {
+        alert("⚠️ Please fill all fields before submitting.");
+        return;
+      }
+
+      google.script.run.withSuccessHandler(() => {
+        alert("✅ Your PDF is being generated and will be sent to your email shortly.");
+      }).generatePDF(formData);
+    }
+
+    window.onload = addRow;
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h2>Term Work Generator V3 Matrix</h2>
+    <label>Email:</label>
+    <input type="email" id="email" placeholder="Enter your email" oninput="validateFields()">
+    <table id="dataTable">
+      <tr>
+        <th>Name</th>
+        <th>PEN</th>
+        <th>Subject</th>
+        <th>Term</th>
+        <th>Semester</th>
+        <th>Class Name</th>
+        <th>Batch</th>
+        <th>Checked By</th>
+        <th>Practical Number</th>
+        <th>Experiment Name</th>
+        <th>Actions</th>
+      </tr>
+    </table>
+    <button type="button" class="tooltip" data-tooltip="Add a new row" onclick="addRow()">➕ Add More</button>
+    <button class="tooltip" data-tooltip="Generate and send PDF" onclick="submitForm()">🚀 Generate PDF</button>
+  </div>
+  <div class="warnings">
+    ⚠️ <b>Important Warnings:</b>
+    <ul>
+      <li>You will get your PDF in your provided <b>Email ID</b> shortly.</li>
+      <li>Generating multiple term works may take <b>more time</b>.</li>
+      <li>Do <b>not</b> use this between <b>3:00 AM - 4:00 AM</b>, as it will <b>not work properly</b>.</li>
+      <li>At <b>3:00 AM - 4:00 AM</b>, stored files get <b>deleted</b> on My-Side.</li>
+    </ul>
+  </div>
+</body>
+</html>
