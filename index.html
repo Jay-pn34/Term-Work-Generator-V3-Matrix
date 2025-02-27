@@ -117,6 +117,14 @@
       text-align: left;
       color: #F4F4F4;
     }
+    canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
   </style>
   <script>
     function addRow() {
@@ -258,5 +266,61 @@
       <li>At <b>3:00 AM - 4:00 AM</b>, stored files get <b>deleted</b> on My-Side.</li>
     </ul>
   </div>
+  <canvas id="matrixCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById("matrixCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const substrings = ["TECH", "CODE", "WEB", "APP", "DATA", "MATRIX", "NODE", "GRID", "PROJ", "BYTE","ALG", "BIT", "CLOUD", "DEV", "NODE", "LOOP", "HASH", "API", "CSS", "HTML","SQL", "APP", "UI", "UX", "ROM", "RAM", "IDE", "BUG", "PATCH", "BYTE"];
+        const fontSize = 16;
+        const columns = Math.floor(canvas.width / fontSize);
+        const activeColumns = new Array(columns).fill(null);
+        const dropSpeed = 2;
+        const spawnRate = 1;
+        
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            for (let i = 0; i < activeColumns.length; i++) {
+                if (activeColumns[i] && activeColumns[i].row * fontSize < canvas.height) {
+                    let { startCol, substring, row, color } = activeColumns[i];
+                    
+                    ctx.fillStyle = color;
+                    ctx.font = fontSize + "px monospace";
+                    
+                    for (let j = 0; j < substring.length; j++) {
+                        if (startCol + j < columns && row >= 0) {
+                            ctx.fillText(substring[j], (startCol + j) * fontSize, row * fontSize);
+                        }
+                    }
+                    activeColumns[i].row += dropSpeed;
+                } else {
+                    activeColumns[i] = null;
+                }
+            }
+            
+            if (Math.random() < spawnRate) {
+                let substring = substrings[Math.floor(Math.random() * substrings.length)];
+                let startCol = Math.floor(Math.random() * (columns - substring.length));
+                let color = `hsl(${Math.random() * (210 - 122) + 122}, 100%, 50%)`;
+                
+                if (startCol >= 0 && !activeColumns.slice(startCol, startCol + substring.length).some(col => col !== null)) {
+                    for (let j = 0; j < substring.length; j++) {
+                        activeColumns[startCol + j] = { startCol, substring, row: 0, color };
+                    }
+                }
+            }
+        }
+        
+        setInterval(drawMatrix, 50);
+        
+        window.addEventListener("resize", () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
 </body>
 </html>
