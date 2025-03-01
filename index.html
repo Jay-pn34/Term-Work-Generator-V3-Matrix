@@ -186,49 +186,68 @@
     }
 
     function submitForm() {
-      var formData = { email: document.getElementById('email').value, entries: [] };
-      var table = document.getElementById("dataTable");
-      var allValid = true;
+        var submitButton = document.getElementById("submitBtn");
+        var emailInput = document.getElementById("email");
+        var formData = { email: emailInput.value, entries: [] };
+        var table = document.getElementById("dataTable");
+        var allValid = true;
 
-      for (var i = 1; i < table.rows.length; i++) {
-        var row = table.rows[i].getElementsByTagName("input");
-        var entry = {
-          name: row[0].value,
-          pen: row[1].value,
-          subject: row[2].value,
-          term: row[3].value,
-          semester: row[4].value,
-          className: row[5].value,
-          batch: row[6].value,
-          checkedBy: row[7].value,
-          practicalNumber: row[8].value,
-          experimentName: row[9].value
-        };
+        // Validate email
+        var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(emailInput.value.trim())) {
+            alert("⚠️ Please enter a valid email address.");
+            return;
+        }
 
-        Object.values(entry).forEach(value => {
-          if (value.trim() === "") {
-            allValid = false;
-          }
-        });
+        // Validate table inputs
+        for (var i = 1; i < table.rows.length; i++) {
+            var row = table.rows[i].getElementsByTagName("input");
+            var entry = {
+                name: row[0].value,
+                pen: row[1].value,
+                subject: row[2].value,
+                term: row[3].value,
+                semester: row[4].value,
+                className: row[5].value,
+                batch: row[6].value,
+                checkedBy: row[7].value,
+                practicalNumber: row[8].value,
+                experimentName: row[9].value
+            };
 
-        formData.entries.push(entry);
-      }
+            Object.values(entry).forEach(value => {
+                if (value.trim() === "") {
+                    allValid = false;
+                }
+            });
 
-      validateFields();
-      var emailInput = document.getElementById("email");
-      if (!emailInput.classList.contains("valid")) {
-        alert("⚠️ Please enter a valid email address.");
-        return;
-      }
+            formData.entries.push(entry);
+        }
 
-      if (!allValid) {
-        alert("⚠️ Please fill all fields before submitting.");
-        return;
-      }
+        if (!allValid) {
+            alert("⚠️ Please fill all fields before submitting.");
+            return;
+        }
 
-      google.script.run.withSuccessHandler(() => {
-        alert("✅ Your PDF is being generated and will be sent to your email shortly.");
-      }).generatePDF(formData);
+        // Disable button and change text only if everything is valid
+        submitButton.disabled = true;
+        submitButton.textContent = "Processing...";
+        submitButton.style.backgroundColor = "#013670";
+        submitButton.style.cursor = "not-allowed";
+        submitButton.setAttribute("data-tooltip", "⏳ Please wait, processing...");
+
+        google.script.run.withSuccessHandler(() => {
+            alert("✅ Your PDF is being generated and will be sent to your email shortly.");
+            resetSubmitButton();
+        }).generatePDF(formData);
+    }
+
+    function resetSubmitButton() {
+        var submitButton = document.getElementById("submitBtn");
+        submitButton.disabled = false;
+        submitButton.textContent = "🚀 Generate PDF";
+        submitButton.removeAttribute("style"); // Resets all inline styles to original CSS
+        submitButton.setAttribute("data-tooltip", "Generate and send PDF"); // Reset tooltip
     }
 
     window.onload = addRow;
@@ -255,7 +274,7 @@
       </tr>
     </table>
     <button type="button" class="tooltip" data-tooltip="Add a new row" onclick="addRow()">➕ Add More</button>
-    <button class="tooltip" data-tooltip="Generate and send PDF" onclick="submitForm()">🚀 Generate PDF</button>
+    <button id="submitBtn" class="tooltip" data-tooltip="Generate and send PDF" onclick="submitForm()">🚀 Generate PDF</button>
   </div>
   <div class="warnings">
     ⚠️ <b>Important Warnings:</b>
