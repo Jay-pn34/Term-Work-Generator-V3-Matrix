@@ -127,6 +127,16 @@
         }
   </style>
   <script>
+    let substrings = [];
+
+    function updateSubstrings() {
+      substrings = [];
+        document.querySelectorAll("#dataTable input[type='text']").forEach(input => {
+        if (input.value.trim() !== "") {
+          substrings.push(input.value.trim().toUpperCase());
+        }
+      });
+    }
     function addRow() {
       var table = document.getElementById("dataTable");
       var row = table.insertRow(-1);
@@ -134,14 +144,19 @@
         var cell = row.insertCell(i);
         var input = document.createElement("input");
         input.type = "text";
-        input.addEventListener("input", validateFields);
+        input.addEventListener("input", () => {
+            validateFields();
+            updateSubstrings(); // Ensures substrings are updated live
+        });
         cell.appendChild(input);
+        validateFields(); // Ensures initial validation when a row is added
       }
       var actionCell = row.insertCell(10);
       actionCell.innerHTML = `
         <button type="button" class="copy-btn tooltip" data-tooltip="Copy previous row" onclick="copyRow(this)">📋</button>
         <button type="button" class="remove-btn tooltip" data-tooltip="Remove this row" onclick="removeRow(this)">X</button>
       `;
+      updateSubstrings(); // Ensures initial substrings are set when a row is added
     }
 
     function removeRow(button) {
@@ -291,7 +306,6 @@
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         
-        const substrings = ["TECH", "CODE", "WEB", "APP", "DATA", "MATRIX", "NODE", "GRID", "PROJ", "BYTE","ALG", "BIT", "CLOUD", "DEV", "NODE", "LOOP", "HASH", "API", "CSS", "HTML","SQL", "APP", "UI", "UX", "ROM", "RAM", "IDE", "BUG", "PATCH", "BYTE"];
         const fontSize = 16;
         const columns = Math.floor(canvas.width / fontSize);
         const activeColumns = new Array(columns).fill(null);
@@ -299,6 +313,7 @@
         const spawnRate = 1;
         
         function drawMatrix() {
+            updateSubstrings(); // Update substrings before drawing
             ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
@@ -320,7 +335,7 @@
                 }
             }
             
-            if (Math.random() < spawnRate) {
+            if (substrings.length > 0 && Math.random() < spawnRate) {
                 let substring = substrings[Math.floor(Math.random() * substrings.length)];
                 let startCol = Math.floor(Math.random() * (columns - substring.length));
                 let color = `hsl(${Math.random() * (210 - 122) + 122}, 100%, 50%)`;
