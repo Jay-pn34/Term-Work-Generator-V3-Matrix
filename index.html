@@ -20,7 +20,7 @@
       margin: auto;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
-      overflow-x: auto;
+      overflow-x: none; /* Prevent horizontal scroll */
     }
     h2 { color: #fff; }
     table {
@@ -118,22 +118,48 @@
       color: #F4F4F4;
     }
     canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    textarea {
+      width: 98%;
+      padding: 5px;
+      border: 1px solid #555;
+      border-radius: 3px;
+      box-sizing: border-box;
+      background-color: #333;
+      color: white;
+      resize: none; /* Prevent manual resizing */
+      overflow: hidden; /* Hide scrollbars */
+      transition: box-shadow 0.3s, border 0.3s;
+    }
+    
+    textarea:focus {
+      outline: none;
+    }
+    
+    textarea.valid {
+      box-shadow: 0 0 10px #1F4A70;
+      border: 1px solid #1F4A70;
+    }
+    
+    textarea.invalid {
+      box-shadow: 0 0 10px #D1435B;
+      border: 1px solid #D1435B;
+    }
   </style>
   <script>
     let substrings = [];
 
     function updateSubstrings() {
       substrings = [];
-        document.querySelectorAll("#dataTable input[type='text']").forEach(input => {
-        if (input.value.trim() !== "") {
-          substrings.push(input.value.trim().toUpperCase());
+        document.querySelectorAll("#dataTable textarea").forEach(textarea => {
+        if (textarea.value.trim() !== "") {
+          substrings.push(textarea.value.trim().toUpperCase());
         }
       });
     }
@@ -142,13 +168,15 @@
       var row = table.insertRow(-1);
       for (var i = 0; i < 10; i++) {
         var cell = row.insertCell(i);
-        var input = document.createElement("input");
-        input.type = "text";
-        input.addEventListener("input", () => {
+        var textarea = document.createElement("textarea");
+        textarea.type = "text";
+        textarea.addEventListener("input", function() {
             validateFields();
             updateSubstrings(); // Ensures substrings are updated live
+            autoResize(this); // Auto-resize the textarea
         });
-        cell.appendChild(input);
+        cell.appendChild(textarea);
+        autoResize(textarea); // Ensure initial resizing
         validateFields(); // Ensures initial validation when a row is added
       }
       var actionCell = row.insertCell(10);
@@ -157,6 +185,11 @@
         <button type="button" class="remove-btn tooltip" data-tooltip="Remove this row" onclick="removeRow(this)">X</button>
       `;
       updateSubstrings(); // Ensures initial substrings are set when a row is added
+    }
+    // Function to auto-resize textareas
+    function autoResize(textarea) {
+      textarea.style.height = "auto"; // Reset height to calculate new height
+      textarea.style.height = textarea.scrollHeight + "px"; // Set height based on content
     }
 
     function removeRow(button) {
@@ -168,8 +201,8 @@
       var row = button.parentNode.parentNode;
       var prevRow = row.previousElementSibling;
       if (prevRow) {
-        var prevInputs = prevRow.getElementsByTagName("input");
-        var currInputs = row.getElementsByTagName("input");
+        var prevInputs = prevRow.getElementsByTagName("textarea");
+        var currInputs = row.getElementsByTagName("textarea");
         for (var i = 0; i < prevInputs.length; i++) {
           currInputs[i].value = prevInputs[i].value;
           validateFields();
@@ -178,7 +211,7 @@
     }
 
     function validateFields() {
-      var inputs = document.querySelectorAll("input[type='text']");
+      var inputs = document.querySelectorAll("textarea");
       inputs.forEach(input => {
         if (input.value.trim() === "") {
           input.classList.add("invalid");
@@ -216,7 +249,7 @@
 
         // Validate table inputs
         for (var i = 1; i < table.rows.length; i++) {
-            var row = table.rows[i].getElementsByTagName("input");
+            var row = table.rows[i].getElementsByTagName("textarea");
             var entry = {
                 name: row[0].value,
                 pen: row[1].value,
@@ -306,15 +339,17 @@
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         
-        const fontSize = 16;
+        const fontSize = 10;
         const columns = Math.floor(canvas.width / fontSize);
         const activeColumns = new Array(columns).fill(null);
         const dropSpeed = 2;
         const spawnRate = 1;
+
         
         function drawMatrix() {
-            updateSubstrings(); // Update substrings before drawing
-            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            updateSubstrings();
+            let fadeStrength = 0.3; // Adjust between 0.1 - 0.3
+            ctx.fillStyle = `rgba(0, 0, 0, ${fadeStrength})`;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             for (let i = 0; i < activeColumns.length; i++) {
